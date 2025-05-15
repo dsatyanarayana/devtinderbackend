@@ -3,6 +3,8 @@ const connectDB = require("./config/database");
 const User = require("./models/User");
 const app = express();
 app.use(express.json());
+
+// Registration form
 app.post("/signup", async (req, res) => {
   const user = User(req.body);
   try {
@@ -15,6 +17,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+// Find the user
 app.post("/user", async (req, res) => {
   try {
     const result = await User.findOne(req.body);
@@ -28,6 +31,7 @@ app.post("/user", async (req, res) => {
   }
 });
 
+// All users list
 app.post("/users", async (req, res) => {
   try {
     const allUsers = await User.find({});
@@ -40,6 +44,40 @@ app.post("/users", async (req, res) => {
     res.send({ status: "fail", message: "Something went wrong!" });
   }
 });
+
+// Delete User
+app.delete("/user", async (req, res) => {
+  const userId = req.body.userId;
+  try {
+    const deleteData = await User.findByIdAndDelete(userId);
+    if (deleteData) {
+      res.status(200).send({ status: "ok", details: "Deleted successfully" });
+    } else {
+      res.status(400).send({ status: "fail", details: "No record found" });
+    }
+  } catch (e) {
+    res.status(400).send({ status: "fail", message: "Something went wrong" });
+  }
+});
+
+// Update user
+app.patch("/user", async (req, res) => {
+  const userId = req.body.userId;
+  const data = req.body;
+  try {
+    const updateData = await User.findByIdAndUpdate(userId, data);
+    if (updateData) {
+      res.status(200).send({ status: "ok", details: "Updated successfully!" });
+    } else {
+      res
+        .status(400)
+        .send({ status: "fail", details: "Not record to update!" });
+    }
+  } catch (e) {
+    res.status(400).send({ status: "fail", details: "Something went wrong!" });
+  }
+});
+
 connectDB()
   .then(() => {
     console.log("DB Connection Successfully!");
