@@ -65,7 +65,9 @@ app.patch("/user", async (req, res) => {
   const userId = req.body.userId;
   const data = req.body;
   try {
-    const updateData = await User.findByIdAndUpdate(userId, data,{runValidators:true });
+    const updateData = await User.findByIdAndUpdate(userId, data, {
+      runValidators: true,
+    });
     if (updateData) {
       res.status(200).send({ status: "ok", details: "Updated successfully!" });
     } else {
@@ -74,7 +76,9 @@ app.patch("/user", async (req, res) => {
         .send({ status: "fail", details: "Not record to update!" });
     }
   } catch (e) {
-    res.status(400).send({ status: "fail", details: "Something went wrong!" });
+    res
+      .status(400)
+      .send({ status: "fail", details: "Something went wrong!" + e.message });
   }
 });
 
