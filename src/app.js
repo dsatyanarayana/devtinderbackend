@@ -1,19 +1,56 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/User");
+const { validateSignUpData, validateSignInData } = require("./utils/validator");
 const app = express();
 app.use(express.json());
+const bcrypt = require("bcrypt");
 
 // Registration form
 app.post("/signup", async (req, res) => {
-  const user = User(req.body);
   try {
+    // Valdate signup field
+    validateSignUpData(req);
+    const { firstName, lastName, email, gender, password } = req.body;
+    // Encrypt password
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = User({
+      firstName,
+      lastName,
+      email,
+      gender,
+      password: passwordHash,
+    });
     await user.save();
     res
       .status(200)
       .send({ status: "ok", details: "User Created Successfully!" });
   } catch (e) {
-    res.status(400).send({ status: "failed", message: e.message });
+    res.status(400).send({ status: "failed", message: "ERROR" + e.message });
+  }
+});
+
+// Signin API
+app.post("/signin", async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    //Validate SIGNIN
+    // validateSignInData(req);
+    const userData = await User.findOne({ email: email });
+    if (userData) {
+      const comparePassword = await bcrypt.compare(password, userData.password);
+      if (comparePassword) {
+        res.status(200).send({ status: "ok", message: "Login Successfully!" });
+      } else {
+        res
+          .status(400)
+          .send({ status: "fail", message: "Password doesn't match! " });
+      }
+    } else {
+      res.status(400).send({ status: "fail", message: "Not valid Email!" });
+    }
+  } catch (e) {
+    res.status(400).send({ status: "fail", message: e.message });
   }
 });
 

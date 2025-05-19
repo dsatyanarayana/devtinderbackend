@@ -32,16 +32,15 @@ const userSchema = mongoose.Schema(
     password: {
       type: String,
       trim: true,
-      minlength: 3,
-      maxlength: 15,
+      required: true,
     },
     skills: {
       type: [String],
-      validate(value){
-        if(value.length > 50){
-            throw new Error("Skills should not exceed 50")
+      validate(value) {
+        if (value.length > 50) {
+          throw new Error("Skills should not exceed 50");
         }
-      }
+      },
     },
     photoUrl: {
       type: String,
@@ -68,7 +67,7 @@ const userSchema = mongoose.Schema(
       },
     },
   },
-  { timestamp: true }
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("User", userSchema);
