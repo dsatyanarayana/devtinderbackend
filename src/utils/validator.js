@@ -12,7 +12,7 @@ const validateSignUpData = (req) => {
 
 const validateSignInData = (req) => {
   const { email, password } = req.body;
-  if (!validator.isEmail(req)) {
+  if (!validator.isEmail(email)) {
     throw new Error("Invalid Email!");
   } else if (!validator.isStrongPassword(password)) {
     throw new Error("Strong password required!");

@@ -3,8 +3,11 @@ const connectDB = require("./config/database");
 const User = require("./models/User");
 const { validateSignUpData, validateSignInData } = require("./utils/validator");
 const app = express();
+const cookieParser = require("cookie-parser");
 app.use(express.json());
+app.use(cookieParser());
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 // Registration form
 app.post("/signup", async (req, res) => {
@@ -35,29 +38,39 @@ app.post("/signin", async (req, res) => {
   const { email, password } = req.body;
   try {
     //Validate SIGNIN
-    // validateSignInData(req);
+    validateSignInData(req);
     const userData = await User.findOne({ email: email });
     if (userData) {
       const comparePassword = await bcrypt.compare(password, userData.password);
       if (comparePassword) {
+        // Create JWT Token
+        const jwtToken = await jwt.sign({ _id: userData._id }, "SATYA@12345");
+
+        // Share the JWT token in response.
+        res.cookie("token", jwtToken);
         res.status(200).send({ status: "ok", message: "Login Successfully!" });
       } else {
         res
           .status(400)
-          .send({ status: "fail", message: "Password doesn't match! " });
+          .send({ status: "fail", message: "Invalid Credentials! " });
       }
     } else {
-      res.status(400).send({ status: "fail", message: "Not valid Email!" });
+      res.status(400).send({ status: "fail", message: "Invalid Credentials!" });
     }
   } catch (e) {
     res.status(400).send({ status: "fail", message: e.message });
   }
 });
 
-// Find the user
-app.post("/user", async (req, res) => {
+// Users Profile
+app.post("/profile", async (req, res) => {
   try {
-    const result = await User.findOne(req.body);
+    const { token } = req.cookies;
+    if (!token) {
+      res.status(400).send({ status: "fail", message: "Invalid Token!" });
+    }
+    const verifyToken = await jwt.verify(token, "SATYA@12345");
+    const result = await User.findById(verifyToken._id);
     if (result) {
       res.send(result);
     } else {
