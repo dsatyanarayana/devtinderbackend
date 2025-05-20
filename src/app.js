@@ -8,6 +8,7 @@ app.use(express.json());
 app.use(cookieParser());
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { userAuth } = require("./middlewares/userAuth");
 
 // Registration form
 app.post("/signup", async (req, res) => {
@@ -63,14 +64,9 @@ app.post("/signin", async (req, res) => {
 });
 
 // Users Profile
-app.post("/profile", async (req, res) => {
+app.post("/profile", userAuth, async (req, res) => {
   try {
-    const { token } = req.cookies;
-    if (!token) {
-      res.status(400).send({ status: "fail", message: "Invalid Token!" });
-    }
-    const verifyToken = await jwt.verify(token, "SATYA@12345");
-    const result = await User.findById(verifyToken._id);
+    const result = req.user;
     if (result) {
       res.send(result);
     } else {
